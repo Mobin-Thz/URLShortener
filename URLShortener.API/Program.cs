@@ -1,6 +1,9 @@
 
 using Microsoft.EntityFrameworkCore;
-using URLShortener.Infrastructure.Context;  
+using URLShortener.Application.Services;
+using URLShortener.Infrastructure.Context;
+using URLShortener.Infrastructure.Repositories;
+using URLShortener.Domain.Interfaces.IRepository;
 
 namespace URLShortener.API
 {
@@ -10,17 +13,23 @@ namespace URLShortener.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            //Add Apllication Services
+            builder.Services.AddScoped<IUrlShortenerService ,UrlShortenerService>();
+
+
+            //Add Repositories
+            builder.Services.AddScoped<IUrlShortenerRepository, UrlShortenerRepository>();
+
+
+            builder.Services.AddControllers();
             builder.Services.AddAuthorization();
 
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             //Db Configuration
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 
             var app = builder.Build();
 
@@ -34,6 +43,8 @@ namespace URLShortener.API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.Run();
         }
