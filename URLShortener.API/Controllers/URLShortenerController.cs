@@ -32,7 +32,7 @@ namespace URLShortener.API.Controllers
                 OriginalUrl = request.OriginalUrl,
                 Code = code,
                 CreatedAt = DateTime.UtcNow,
-                ShortUrl = $"{Request.Scheme}://{Request.Host}/{code}"
+                ShortUrl = $"{Request.Scheme}://{Request.Host}/api/URLShortener/RedirectToOriginal/{code}"
             };
             await _urlShorteningService.AddUrlCode(shortenedUrl);
 
