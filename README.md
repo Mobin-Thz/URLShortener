@@ -27,7 +27,7 @@
 
 1. کلون کردن ریپازیتوری:
 ```bash
-git clone https://github.com/username/URLShortener.git
+git clone https://github.com/Mobin-Thz/URLShortener.git
 cd URLShortener
 ```
 
