@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "URLShortener API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Shorten URL",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"originalUrl\": \"https://github.com/Mobin-Thz\"\n}"
+        },
+        "url": "https://localhost:7074/api/URLShortener/Shorten"
+      }
+    },
+    {
+      "name": "Redirect to Original",
+      "request": {
+        "method": "GET",
+        "url": "https://localhost:7074/api/URLShortener/RedirectToOriginal/ErXuJ7"
+      }
+    }
+  ]
+}
