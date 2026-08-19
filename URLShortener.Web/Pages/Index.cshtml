@@ -1,0 +1,159 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">SHORT LINKS · CLEAR SIGNALS</p>
+        <h1>Shorten once.<br /><span>Understand every visit.</span></h1>
+        <p class="hero-copy">Create durable links, control their lifecycle, and inspect privacy-aware analytics from one focused dashboard.</p>
+    </div>
+    <div class="hero-metric" aria-label="Total links">
+        <strong>@Model.Links.TotalCount</strong>
+        <span>links created</span>
+    </div>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+{
+    <div class="notice success" role="status">@Model.SuccessMessage</div>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ServiceError))
+{
+    <div class="notice error" role="alert">@Model.ServiceError</div>
+}
+
+<section class="dashboard-grid">
+    <div class="panel create-panel">
+        <div class="panel-heading">
+            <div>
+                <p class="section-kicker">NEW LINK</p>
+                <h2>Create a short URL</h2>
+            </div>
+            <span class="step-number">01</span>
+        </div>
+
+        <form method="post" asp-page-handler="Create" class="stacked-form" data-processing-form>
+            <div asp-validation-summary="All" class="validation-summary"></div>
+
+            <label asp-for="Form.OriginalUrl"></label>
+            <input asp-for="Form.OriginalUrl" type="url" placeholder="https://example.com/a/very/long/path" autocomplete="url" />
+            <span asp-validation-for="Form.OriginalUrl" class="field-error"></span>
+
+            <div class="form-row">
+                <div>
+                    <label asp-for="Form.CustomAlias"></label>
+                    <input asp-for="Form.CustomAlias" placeholder="launch-notes" autocomplete="off" />
+                    <span asp-validation-for="Form.CustomAlias" class="field-error"></span>
+                </div>
+                <div>
+                    <label asp-for="Form.ExpiresAtLocal"></label>
+                    <input asp-for="Form.ExpiresAtLocal" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                    <span asp-validation-for="Form.ExpiresAtLocal" class="field-error"></span>
+                </div>
+            </div>
+
+            <button class="primary-button" type="submit" data-submit-button>
+                <span class="button-content" data-submit-idle>
+                    <span>Create short link</span>
+                    <span aria-hidden="true">→</span>
+                </span>
+                <span class="button-progress" data-submit-busy hidden>
+                    <span class="spinner" aria-hidden="true"></span>
+                    Creating link…
+                </span>
+            </button>
+            <p class="processing-hint" data-processing-hint hidden role="status" aria-live="polite">
+                Sending the request to the API. Please wait and keep this page open.
+            </p>
+        </form>
+    </div>
+
+    <aside class="panel how-panel">
+        <p class="section-kicker">REQUEST FLOW</p>
+        <ol class="flow-list">
+            <li><span>1</span><div><strong>Validate</strong><small>HTTP/HTTPS, alias, expiration</small></div></li>
+            <li><span>2</span><div><strong>Generate</strong><small>Secure code or custom alias</small></div></li>
+            <li><span>3</span><div><strong>Persist</strong><small>Unique SQL constraint</small></div></li>
+            <li><span>4</span><div><strong>Measure</strong><small>Privacy-aware click events</small></div></li>
+        </ol>
+    </aside>
+</section>
+
+<section class="links-section">
+    <div class="section-heading">
+        <div>
+            <p class="section-kicker">INVENTORY</p>
+            <h2>Your links</h2>
+        </div>
+        <span>Page @Model.Links.Page of @Math.Max(1, Model.Links.TotalPages)</span>
+    </div>
+
+    @if (Model.Links.Items.Count == 0)
+    {
+        <div class="empty-state">
+            <strong>No links to show yet.</strong>
+            <span>Create your first link above, or start the API if it is offline.</span>
+        </div>
+    }
+    else
+    {
+        <div class="link-list">
+            @foreach (var link in Model.Links.Items)
+            {
+                var unavailable = !link.IsActive || (link.ExpiresAt is not null && link.ExpiresAt <= DateTime.UtcNow);
+                <article class="link-card">
+                    <div class="link-main">
+                        <div class="link-status @(unavailable ? "inactive" : "active")">
+                            <span></span>
+                            @(unavailable ? "Unavailable" : "Active")
+                        </div>
+                        <a class="short-url" href="@link.ShortUrl" target="_blank" rel="noreferrer">@link.ShortUrl</a>
+                        <p class="destination" title="@link.OriginalUrl">@link.OriginalUrl</p>
+                    </div>
+
+                    <div class="link-stats">
+                        <div><strong>@link.TotalClicks</strong><span>clicks</span></div>
+                        <div><strong>@(link.LastAccessedAt?.ToLocalTime().ToString("MMM d") ?? "—")</strong><span>last visit</span></div>
+                        <div><strong>@link.CreatedAt.ToLocalTime().ToString("MMM d")</strong><span>created</span></div>
+                    </div>
+
+                    <div class="link-actions">
+                        <button type="button" class="ghost-button copy-button" data-copy="@link.ShortUrl">Copy</button>
+                        <a class="ghost-button" asp-page="/Analytics" asp-route-code="@link.Code">Analytics</a>
+                        <form method="post" asp-page-handler="Status" data-processing-form>
+                            <input type="hidden" name="code" value="@link.Code" />
+                            <input type="hidden" name="isActive" value="@(!link.IsActive)" />
+                            <input type="hidden" name="pageNumber" value="@Model.Links.Page" />
+                            <button class="ghost-button @(link.IsActive ? "danger" : "positive")" type="submit" data-submit-button>
+                                <span data-submit-idle>@(link.IsActive ? "Pause" : "Activate")</span>
+                                <span class="button-progress compact" data-submit-busy hidden>
+                                    <span class="spinner" aria-hidden="true"></span>
+                                    Updating…
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+
+        @if (Model.Links.TotalPages > 1)
+        {
+            <nav class="pagination" aria-label="Link pages">
+                @if (Model.Links.Page > 1)
+                {
+                    <a asp-page="/Index" asp-route-pageNumber="@(Model.Links.Page - 1)">← Previous</a>
+                }
+                <span>@Model.Links.Page / @Model.Links.TotalPages</span>
+                @if (Model.Links.Page < Model.Links.TotalPages)
+                {
+                    <a asp-page="/Index" asp-route-pageNumber="@(Model.Links.Page + 1)">Next →</a>
+                }
+            </nav>
+        }
+    }
+</section>

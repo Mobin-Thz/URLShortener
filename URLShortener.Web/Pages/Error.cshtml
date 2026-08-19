@@ -1,0 +1,12 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<section class="error-page">
+    <p class="eyebrow">REQUEST FAILED</p>
+    <h1>Something went wrong.</h1>
+    <p>The request could not be completed. Check that both the Web and API projects are running, then try again.</p>
+    <a class="primary-button" asp-page="/Index">Return to dashboard</a>
+</section>

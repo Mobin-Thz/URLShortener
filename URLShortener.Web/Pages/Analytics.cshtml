@@ -1,0 +1,95 @@
+@page
+@model AnalyticsModel
+@{
+    ViewData["Title"] = $"Analytics · {Model.Code}";
+}
+
+<div class="analytics-topbar">
+    <a asp-page="/Index">← Back to dashboard</a>
+    <span class="code-chip">/@Model.Code</span>
+</div>
+
+<section class="analytics-hero">
+    <div>
+        <p class="eyebrow">LINK INTELLIGENCE</p>
+        <h1>Analytics for <span>@Model.Code</span></h1>
+        @if (Model.Analytics is not null)
+        {
+            <a href="@Model.Analytics.ShortUrl" target="_blank" rel="noreferrer">@Model.Analytics.ShortUrl ↗</a>
+        }
+    </div>
+
+    <form method="get" class="range-form" data-processing-form>
+        <input type="hidden" asp-for="Code" />
+        <div>
+            <label asp-for="From">From (UTC)</label>
+            <input asp-for="From" type="date" />
+        </div>
+        <div>
+            <label asp-for="To">To, exclusive (UTC)</label>
+            <input asp-for="To" type="date" />
+        </div>
+        <button type="submit" class="primary-button" data-submit-button>
+            <span data-submit-idle>Apply range</span>
+            <span class="button-progress compact" data-submit-busy hidden>
+                <span class="spinner" aria-hidden="true"></span>
+                Loading…
+            </span>
+        </button>
+        <a asp-page="/Analytics" asp-route-code="@Model.Code" class="ghost-button">Last 30 days</a>
+    </form>
+</section>
+
+<div asp-validation-summary="All" class="validation-summary"></div>
+
+@if (!string.IsNullOrWhiteSpace(Model.ServiceError))
+{
+    <div class="notice error" role="alert">@Model.ServiceError</div>
+}
+
+@if (Model.Analytics is not null)
+{
+    <section class="metric-grid">
+        <article><span>All time</span><strong>@Model.Analytics.AllTimeClicks</strong><small>total clicks</small></article>
+        <article><span>Selected range</span><strong>@Model.Analytics.ClicksInRange</strong><small>tracked visits</small></article>
+        <article><span>Unique visitors</span><strong>@Model.Analytics.UniqueVisitorsInRange</strong><small>daily fingerprints</small></article>
+        <article><span>Range</span><strong>@((Model.Analytics.To - Model.Analytics.From).Days)</strong><small>days queried</small></article>
+    </section>
+
+    <section class="panel daily-panel">
+        <div class="panel-heading">
+            <div>
+                <p class="section-kicker">TIMELINE</p>
+                <h2>Clicks by day</h2>
+            </div>
+            <span>@Model.Analytics.From.ToString("MMM d") – @Model.Analytics.To.ToString("MMM d, yyyy")</span>
+        </div>
+
+        @if (Model.Analytics.DailyClicks.Count == 0)
+        {
+            <p class="empty-state compact">No clicks in this range.</p>
+        }
+        else
+        {
+            var maximum = Math.Max(1, Model.Analytics.DailyClicks.Max(item => item.Clicks));
+            <div class="daily-chart">
+                @foreach (var item in Model.Analytics.DailyClicks)
+                {
+                    var height = Math.Max(8, (int)Math.Round(item.Clicks * 100d / maximum));
+                    <div class="daily-column" title="@item.Date.ToString("yyyy-MM-dd"): @item.Clicks clicks">
+                        <strong>@item.Clicks</strong>
+                        <div><span style="height: @(height)%"></span></div>
+                        <small>@item.Date.ToString("MMM d")</small>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="breakdown-grid">
+        @await Html.PartialAsync("_Breakdown", new BreakdownPanel("Top referrers", Model.Analytics.TopReferrers))
+        @await Html.PartialAsync("_Breakdown", new BreakdownPanel("Browsers", Model.Analytics.Browsers))
+        @await Html.PartialAsync("_Breakdown", new BreakdownPanel("Devices", Model.Analytics.Devices))
+        @await Html.PartialAsync("_Breakdown", new BreakdownPanel("Countries", Model.Analytics.Countries))
+    </section>
+}

@@ -1,0 +1,31 @@
+@model BreakdownPanel
+
+<section class="panel breakdown-panel">
+    <div class="panel-heading">
+        <h2>@Model.Title</h2>
+        <span>@Model.Items.Sum(item => item.Clicks) clicks</span>
+    </div>
+
+    @if (Model.Items.Count == 0)
+    {
+        <p class="empty-state compact">No data in this range.</p>
+    }
+    else
+    {
+        <div class="breakdown-list">
+            @foreach (var item in Model.Items)
+            {
+                var width = Math.Max(4, (int)Math.Round(item.Clicks * 100d / Model.Maximum));
+                <div class="breakdown-row">
+                    <div class="breakdown-label">
+                        <span title="@item.Value">@item.Value</span>
+                        <strong>@item.Clicks</strong>
+                    </div>
+                    <div class="bar-track" aria-hidden="true">
+                        <span style="width: @(width)%"></span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

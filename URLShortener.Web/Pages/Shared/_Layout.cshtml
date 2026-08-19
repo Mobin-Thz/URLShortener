@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] · Linkscope</title>
+    <meta name="description" content="Create short links and inspect privacy-aware analytics." />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" asp-page="/Index" aria-label="Linkscope dashboard">
+            <span class="brand-mark">L</span>
+            <span>Linkscope</span>
+        </a>
+        <nav aria-label="Primary navigation">
+            <a asp-page="/Index">Dashboard</a>
+            <a href="http://localhost:5137/swagger" target="_blank" rel="noreferrer">API docs</a>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <span>URL Shortener learning project</span>
+        <span>Razor Pages → HTTP API → SQL Server</span>
+    </footer>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
