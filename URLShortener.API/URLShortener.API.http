@@ -1,6 +1,41 @@
-@URLShortener.API_HostAddress = http://localhost:5137
+@host = http://localhost:5137
+@code = learning-link
 
-GET {{URLShortener.API_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health
+GET {{host}}/health
 
-###
+### Create a short link
+POST {{host}}/api/links
+Content-Type: application/json
+
+{
+  "originalUrl": "https://learn.microsoft.com/aspnet/core",
+  "customAlias": "{{code}}",
+  "expiresAt": null
+}
+
+### List links
+GET {{host}}/api/links?page=1&pageSize=20
+
+### Get one link
+GET {{host}}/api/links/{{code}}
+
+### Follow the short link and record a click
+GET {{host}}/{{code}}
+Referer: https://example.com/article
+User-Agent: Mozilla/5.0 (iPhone) AppleWebKit Chrome/120 Mobile
+X-Country-Code: IR
+
+### Read the last 30 days of analytics
+GET {{host}}/api/links/{{code}}/analytics
+
+### Read analytics for a date range (To is exclusive)
+GET {{host}}/api/links/{{code}}/analytics?from=2026-08-01T00:00:00Z&to=2026-09-01T00:00:00Z
+
+### Deactivate a link
+PUT {{host}}/api/links/{{code}}/status
+Content-Type: application/json
+
+{
+  "isActive": false
+}

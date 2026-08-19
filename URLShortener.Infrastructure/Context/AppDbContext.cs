@@ -1,35 +1,44 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using URLShortener.Application.Services;
+using Microsoft.EntityFrameworkCore;
 using URLShortener.Domain.Entities;
-using URLShortener.Infrastructure.Repositories;
 
-namespace URLShortener.Infrastructure.Context
+namespace URLShortener.Infrastructure.Context;
+
+public sealed class AppDbContext : DbContext
 {
-    public class AppDbContext : DbContext
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    }
+
+    public DbSet<ShortenedUrl> ShortenedUrls => Set<ShortenedUrl>();
+    public DbSet<ClickEvent> ClickEvents => Set<ClickEvent>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ShortenedUrl>(builder =>
         {
-        }
+            builder.HasKey(item => item.Id);
+            builder.HasIndex(item => item.Code).IsUnique();
+            builder.Property(item => item.Code).HasMaxLength(32).IsRequired();
+            builder.Property(item => item.OriginalUrl).IsRequired();
+            builder.Property(item => item.ShortUrl).IsRequired();
+            builder.Property(item => item.IsActive).HasDefaultValue(true);
+            builder.Property(item => item.TotalClicks).HasDefaultValue(0);
+        });
 
-        // Define DbSets for your entities here
-         public DbSet<ShortenedUrl> ShortenedUrls { get; set; }
-
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        modelBuilder.Entity<ClickEvent>(builder =>
         {
-            base.OnModelCreating(modelBuilder);
-            // Configure entity properties and relationships here if needed
-            modelBuilder.Entity<ShortenedUrl>(builder =>
-            {
-                builder.HasIndex(e => e.Code).IsUnique();
-                builder.Property(e => e.Code).HasMaxLength(UrlShortenerRepository.CodeLength);
-
-            });
-        }
+            builder.HasKey(item => item.Id);
+            builder.Property(item => item.VisitorHash).HasMaxLength(64);
+            builder.Property(item => item.ReferrerHost).HasMaxLength(255);
+            builder.Property(item => item.Browser).HasMaxLength(64).IsRequired();
+            builder.Property(item => item.DeviceType).HasMaxLength(32).IsRequired();
+            builder.Property(item => item.CountryCode).HasMaxLength(2);
+            builder.HasIndex(item => new { item.ShortenedUrlId, item.ClickedAt });
+            builder.HasIndex(item => item.VisitorHash);
+            builder.HasOne(item => item.ShortenedUrl)
+                .WithMany(item => item.Clicks)
+                .HasForeignKey(item => item.ShortenedUrlId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
