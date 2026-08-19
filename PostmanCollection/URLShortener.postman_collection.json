@@ -3,29 +3,55 @@
     "name": "URLShortener API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5137" },
+    { "key": "code", "value": "learning-link" }
+  ],
   "item": [
     {
-      "name": "Shorten URL",
+      "name": "Create short link",
       "request": {
         "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"originalUrl\": \"https://github.com/Mobin-Thz\"\n}"
+          "raw": "{\n  \"originalUrl\": \"https://learn.microsoft.com/aspnet/core\",\n  \"customAlias\": \"{{code}}\",\n  \"expiresAt\": null\n}"
         },
-        "url": "https://localhost:7074/api/URLShortener/Shorten"
+        "url": "{{baseUrl}}/api/links"
       }
     },
     {
-      "name": "Redirect to Original",
+      "name": "List links",
       "request": {
         "method": "GET",
-        "url": "https://localhost:7074/api/URLShortener/RedirectToOriginal/ErXuJ7"
+        "url": "{{baseUrl}}/api/links?page=1&pageSize=20"
+      }
+    },
+    {
+      "name": "Follow short link",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Referer", "value": "https://example.com/article" },
+          { "key": "X-Country-Code", "value": "IR" }
+        ],
+        "url": "{{baseUrl}}/{{code}}"
+      }
+    },
+    {
+      "name": "Get analytics",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/links/{{code}}/analytics"
+      }
+    },
+    {
+      "name": "Deactivate link",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" },
+        "url": "{{baseUrl}}/api/links/{{code}}/status"
       }
     }
   ]
